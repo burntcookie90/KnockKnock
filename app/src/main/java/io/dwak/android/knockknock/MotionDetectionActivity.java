@@ -321,7 +321,7 @@ public class MotionDetectionActivity extends SensorsActivity {
         protected void onPostExecute(Integer integer) {
             super.onPostExecute(integer);
             new Handler(Looper.getMainLooper()).postDelayed(() -> MotionDetectionActivity.this.startActivity(new Intent(MotionDetectionActivity.this,
-                                                                  MainActivity.class)), 500);
+                                                                  MainActivity.class)), 200);
         }
     }
 }

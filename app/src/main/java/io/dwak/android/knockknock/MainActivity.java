@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
@@ -36,22 +37,34 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         Action1<Joke> jokeAction = joke -> {
             mJoke = joke;
-            mTts.speak(mJoke.mJokeArray.get(mJokeSection), TextToSpeech.QUEUE_FLUSH, null);
-            if(mJokeSection < mJoke.mJokeArray.size() - 1) {
-                mJokeSection++;
-                new Handler(Looper.getMainLooper())
-                        .postDelayed(MainActivity.this::promptSpeechInput,
-                                     300);
-            }
-            else {
-                mainViewModel.getJokeImage(mJoke.mJokeArray.get(2));
-                finish();
-            }
+            mTts.speak(mJoke.mJokeArray.get(mJokeSection), TextToSpeech.QUEUE_FLUSH, null, String.valueOf(mJokeSection));
         };
 
         mTextToSpeechPublishSubject
                 .flatMap(textToSpeech -> {
                     mTts = textToSpeech;
+                    mTts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            if (mJokeSection < mJoke.mJokeArray.size() - 1) {
+                                mJokeSection++;
+                                MainActivity.this.promptSpeechInput();
+                            }
+                            else{
+                                mainViewModel.getJokeImage(mJoke.mJokeArray.get(2));
+                            }
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+
+                        }
+                    });
                     return mainViewModel.getJoke();
                 })
                 .subscribe(jokeAction::call);
@@ -62,7 +75,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                          jokeAction.call(mJoke);
                      });
 
-        mainViewModel.getNewJoke();
 
         binding.newJoke.setOnClickListener(v -> {
             mJokeSection = 0;
@@ -119,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             case MY_DATA_CHECK_CODE:
                 if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
                     // success, create the TTS instance
-                    mTextToSpeechPublishSubject.onNext(new TextToSpeech(this, this));
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> mTextToSpeechPublishSubject.onNext(new TextToSpeech(MainActivity.this, MainActivity.this)), 300);
                 }
                 else {
                     // missing data, install it

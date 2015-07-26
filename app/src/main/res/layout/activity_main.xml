@@ -14,9 +14,10 @@
 
         <Button
             android:id="@+id/new_joke"
-            android:text="New Joke"
+            android:text="Someone's at the door!"
+            android:textSize="18sp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="match_parent"/>
 
     </RelativeLayout>
 </layout>
